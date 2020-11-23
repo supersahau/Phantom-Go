@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-# Author:陈滔
+# Author:Yuntian
 
 # 程序接口说明
 # bf_PhantomGo：主程序传入(x,y)坐标，棋盘可视化棋子，并在显示框中显示坐标
@@ -12,7 +12,8 @@ from tkinter.messagebox import *
 
 from Ghost1 import Ghost
 import numpy as np
-from go import find_reached
+from go import find_reached  # 提子
+
 
 class Chess(object):
 
@@ -46,7 +47,7 @@ class Chess(object):
         self.root.title("幻影围棋")
         self.root.resizable(width=False, height=False)
         self.label = Label(self.root, text=self.text,
-                     width=45, height=1, font=self.btn_font, bg='#eae2d2')
+                           width=45, height=1, font=self.btn_font, bg='#eae2d2')
         self.label.pack()
 
         # 定义放置按钮与标签的父框
@@ -107,7 +108,8 @@ class Chess(object):
         self.is_chess = False
         self.matrix = [[0 for y in range(self.column)] for x in range(self.row)]
         self.draw_board()
-        for i in range(9):
+        """
+         for i in range(9):
             self.c_chess.create_text(485, 55+i*49, text=9-i, font=self.btn_font)
         for j in range(9):
             self.c_chess.create_text(52+j*50, 485, text=chr(ord('A')+j), font=self.btn_font)
@@ -115,16 +117,30 @@ class Chess(object):
             self.c_chess.create_text(15, 55+i*49, text=i, font=self.btn_font)
         for j in range(9):
             self.c_chess.create_text(52+j*50, 15, text=j, font=self.btn_font)
+        """
+        # 坐标 右
+        for i in range(9):
+            self.c_chess.create_text(485, 55 + i * 49, text=i + 1, font=self.btn_font)
+        # 坐标 下
+        for j in range(9):
+            self.c_chess.create_text(52 + j * 50, 485, text=j + 1, font=self.btn_font)
+        # 坐标 左
+        for i in range(9):
+            self.c_chess.create_text(15, 55 + i * 49, text=chr(ord('A') + i), font=self.btn_font)
+        # 坐标 上
+        for j in range(9):
+            self.c_chess.create_text(52 + j * 50, 15, text=chr(ord('A') + j), font=self.btn_font)
 
-        restore = False
+        # restore = True  # 复盘时使用
+        restore = False  # 正常使用
 
         if not restore:
             color_info = askquestion("确定我方先后手", "先手？")
             color = 0
             if color_info == 'yes':
-               color = 1
+                color = 1
             else:
-               color = -1
+                color = -1
             self.ghost = Ghost(color)
         else:
             # 复盘时用
@@ -138,17 +154,17 @@ class Chess(object):
                 y = stone[1]
                 self.draw_chess(x, y, color)
                 self.last_p = [x, y]
-                self.label['text'] = '(' + str(9 - x) + ', ' + chr(ord('A') + y) + ')' + '    ' + '(' + str(x) + ', ' + str(y) + ')'
+                self.label['text'] = '(' + str(9 - x) + ', ' + chr(ord('A') + y) + ')' + '    ' + '(' + str(
+                    x) + ', ' + str(y) + ')'
 
-
-    # 程序接口
+    # 提子操作
     def bf_takechess_start(self):
         self.state = 1
         return self.state
 
     # 用网格覆盖掉棋子，操作相应变量，matrix[x][y]置空
     def bf_takechess(self, click):
-        takechess_storage = []
+        takechess_storage = []  # 提子信息存储
         if self.state:
             # 找到离点击点最近的坐标
             x, y = int((click.y - self.step) / self.mesh), int((click.x - self.step) / self.mesh)
@@ -161,7 +177,7 @@ class Chess(object):
             if distance > self.step * 0.95:
                 return
 
-            group, _ = find_reached(self.ghost.board_selfNow, (x,y))
+            group, _ = find_reached(self.ghost.board_selfNow, (x, y))
 
             for coord in group:
                 x = coord[0]
@@ -176,13 +192,15 @@ class Chess(object):
         self.ghost.on_takeInfo(takechess_storage)
 
     # 程序接口
+
     def bf_PhantomGo(self):
         action = self.ghost.action()
         return action[0], action[1]
 
+    # 开始下棋： cf_board > bf_PhantomGo > cf_board_input
     def cf_board(self):
         x, y = self.bf_PhantomGo()
-        self.cf_board_input(x,y)
+        self.cf_board_input(x, y)
 
     def cf_board_input(self, x, y):
         if (x == -1) and (y == -1):
@@ -196,7 +214,17 @@ class Chess(object):
             self.draw_chess(x, y, color)
             # self.matrix[x][y] = tag
             self.last_p = [x, y]
-            self.label['text'] = '(' + chr(ord('A')+y) + ', ' + str(9-x) + ')'+ '    '+'(' + str(x) + ', ' + str(y) + ')'
+
+            # 比赛规则的坐标实现
+            # print(x, y)
+            capitalList = ["A", "B", "C", "D", "E", "F", "G", "H", "I"]
+            # print(capitalList[y], capitalList[x])
+            self.label['text'] = '(' + str(capitalList[y]) + ', ' + str(capitalList[x]) + ')' + '    ' + '(' + str(
+                y + 1) + ', ' + str(
+                x + 1) + ')'
+
+            # self.label['text'] = '(' + chr(ord('A') + y) + ', ' + str(9 - x) + ')' + '    ' + '(' + str(x) + ', ' + str(
+            #     y) + ')'
             legal_info = askquestion("判定合法情况", "legal？")
             if legal_info == 'yes':
                 self.ghost.on_legalInfo(True)
@@ -206,13 +234,15 @@ class Chess(object):
                 self.matrix[x][y] = 0
                 self.last_p = None
                 action = self.ghost.on_legalInfo(False)
-                self.cf_board_input(action[0],action[1])
+                self.cf_board_input(action[0], action[1])
 
     def bf_color(self, true, false):
         return true if self.is_chess else false
 
+
 def main(argv):
     Chess()
+
 
 if __name__ == '__main__':
     app.run(main)
