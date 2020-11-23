@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-# Author:Yuntian
+# Author:Chentao
 
 # 程序接口说明
 # bf_PhantomGo：主程序传入(x,y)坐标，棋盘可视化棋子，并在显示框中显示坐标
